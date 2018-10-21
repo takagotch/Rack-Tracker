@@ -12,6 +12,13 @@ gem install rack-tracker
 ```
 
 ```ruby
+
+use Rack::Tracker do
+  handler :maybe_a_friendly_tracker, { tracker: 'U-XXXXX-Y', DO_NOT_RESPECT_DNT_HEADER: true }
+  handler :google_analytics, { tracker: 'U-XXXXX-Y' }
+end
+
+
 config.middleware.use(Rack::Tracker) do
   handler :google_analytics, { tracker: 'U-XXXXX-Y' }
 end
@@ -64,13 +71,15 @@ def show
   end
 end
 
-ga("", {})
+ga("ec:addItem", {"id": "1234", "name": "Fluffy Pink Bunnies", "sku": "DD23444", "category": "Party Toys", "price": "11.99", "quantity": "1"});
 
 def show
   tracker do |t|
-    t.google_analytics :ecommerce, { type: '', id: '', affiliation: '' }
+    t.google_analytics :ecommerce, { type: 'addItem', id: '1234', affiliation: 'Acme Cloting', revenue: '11.99', shipping: '5', tax: '1.29' }
   end
 end
+
+ga('ecommerce:addItem', { 'id': '1234', 'affiliation': 'Acme Clothing', 'revenue': '11.99', 'shipping': '5', 'tax': '1.29' })
 
 config.middleware.use(Rack::Tracker) do
   handler :google_analytics, { tracker: 'U-XXXXX-Y', ecommerce: true }
@@ -156,62 +165,86 @@ config.middleware.use(Rack::Tracker) do
   }
 end
 
-_gs();
-_gs();
+_gs('ABCDEFGH', 'primaryTracker');
+_gs('1234567', 'secondaryTracker');
 
 def show
+  tracker do |t|
+    t.go_squared :visitor_name, { name: 'John Doe' }
+  end
 end
 
-_gs();
+_gs("set", "visitorName", "John Doe");
 
 def show
+  tracker do |t|
+    t.go_squared :visitor_info, { age: 35, favorite_food: 'pizza' }
+  end
 end
 
-_gs();
+_gs("set", "visitor", { "age": 35, "favorite_food": "pizza" });
 
-config.middleware.use() do
-end
-
-def show
-end
-
-window.criteo_q.push();
-
-t.criteo :track_transaction, {}
-
-config.middleware.use() do
+config.middleware.use(Rack::Tracker) do
+  handler :criteo, { set_account: '1234' }
 end
 
 def show
+  tracker do |t|
+    t.criteo :view_item, { item: 'P0001' }
+  end
 end
 
-window._zx.push();
+window.criteo_q.push({"event": "viewItem", "item": "P001"});
 
-zx_category = '';
-zx_amount = '';
+t.criteo :track_transaction, { id: 'id', item: { id: "P0038", price: "6.54", quantity: 1 } }
+
+config.middleware.use(Rack::Tracker) do
+  handler :zanox, { account_id: '1234' }
+end
 
 def show
+  tracker do |t|
+    t.zanox :mastertag, { id: "XXXXXXXXXXX", category: 'Swimming', amount: '3.50' }
+  end
+end
+
+window._zx.push({"id": "XXXXXXXXXXX"});
+
+zx_category = 'Swimming';
+zx_amount = '3.50';
+
+def show
+  tracker do |t|
+    t.zanox :lead, { order_i_d: 'DEFC-4321' }
+  end
 end
 
 def show
+  tracker do |t|
+    t.zanox :sale, { customer_i_d: '123456', order_i_d: 'DEFC-4321', currency_symbol: 'EUR', total_price: '150.00' }
+  end
 end
 
-config.middleware.use() do
+config.middleware.use(Rack::Tracker) do
+  handler :hotjar, { site_id: '1234' }
 end
 
 class MyHandler < Rack::Tracker::Handler
 end
 
 def render
+  Tilt.new( File.join( File.dirname(__FILE__), 'template', 'my_handler.erb') ).render(self)
 end
 
-config.middleware.use() do
+config.middleware.use(Rack::Tracker) do
+  handler MyHandler, { awesome: true }
 end
 
 class MyHandler < Rack::Tracker::Handler
+  self.positoin = :body
 end
 
-def self.track()
+def self.track(name, *event)
 end
 
 ```
